@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css">
+  <title>Quiz Bíblico</title>
+  </head>
+
+<body>
+
+  <h1>📖 Quiz Bíblico</h1>
+
+  <!-- TELA INICIAL -->
+  <div id="start-screen">
+    <h2>🎯 Bem-vindo ao Quiz!</h2>
+    
+    <!-- SELETOR DE CONJUNTO DE PERGUNTAS -->
+    <div style="margin: 15px 0; padding: 15px; background: #f0f0f0; border-radius: 10px;">
+      <label style="font-weight: bold;">📚 Escolha o conjunto de perguntas:</label>
+      <div style="margin-top: 10px;">
+        <button id="btn-original" style="margin: 5px; padding: 8px 15px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">📖 Conjunto Original</button>
+        <button id="btn-new" style="margin: 5px; padding: 8px 15px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer;">🔥 Conjunto Super Difícil</button>
+      </div>
+      <p id="conjunto-info" style="margin-top: 10px; font-size: 14px; color: #555;">📚 Conjunto ativo: PERGUNTAS ORIGINAIS</p>
+    </div>
+    
+    <input type="text" id="usuario" placeholder="Digite seu nome" />
+    <br />
+    <button id="start-btn">🚀 INICIAR QUIZ</button>
+  </div>
+
+  <!-- TELA DO QUIZ -->
+  <div id="quiz-container" class="hidden">
+    <div id="phase-info"></div>
+    <div id="question"></div>
+    <div id="answers"></div>
+    <button id="next-btn" class="hidden">➡️ Próxima Pergunta</button>
+    <button id="next-phase-btn" class="hidden">🎯 Avançar para a Próxima Fase</button>
+    <div id="result" class="hidden"></div>
+  </div>
+
+  <div class="progresso">
+    <button class="action" onclick="salvarProgresso()">💾 Salvar Progresso</button>
+    <button class="action" onclick="consultarProgresso()">📊 Ver Progresso</button>
+  </div>
+  <div id="progresso-info" style="margin-top: 20px; font-size: 18px;"></div>
+
+  <script src="script.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registrado com sucesso: ', registration);
+          })
+          .catch((error) => {
+            console.log('Erro ao registrar o Service Worker: ', error);
+          });
+      });
+    }
+  </script>
+
+  </body>
+</html>
