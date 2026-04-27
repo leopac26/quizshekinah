@@ -599,6 +599,196 @@
     // ============================================
     const newQuestions = [
       {
+        question: "(40) Quantas pessoas entraram na arca de Noé (contando com Noé)?",
+        answers: [
+          { text: "Sete pessoas", correct: false },
+          { text: "Nove pessoas", correct: false },
+          { text: "Seis pessoas", correct: false },
+          { text: "Oito pessoas", correct: true }
+        ]
+      },
+      {
+        question: "(41) Qual o nome do escravo de Saulo (Paulo) que o ajudou a apedrejar Estevão?",
+        answers: [
+          { text: "João Marcos", correct: false },
+          { text: "Silas", correct: false },
+          { text: "Não é mencionado", correct: true },
+          { text: "Tiago", correct: false }
+        ]
+      },
+      {
+        question: "(42) Qual rei escreveu a frase 'Vaidade de vaidades, tudo é vaidade'?",
+        answers: [
+          { text: "Salomão", correct: true },
+          { text: "Ezequias", correct: false },
+          { text: "Davi", correct: false },
+          { text: "Josias", correct: false }
+        ]
+      },
+      {
+        question: "(43) Quantas pragas caíram sobre o Egito antes de Faraó deixar o povo de Israel sair?",
+        answers: [
+          { text: "Oito pragas", correct: false },
+          { text: "Dez pragas", correct: true },
+          { text: "Sete pragas", correct: false },
+          { text: "Doze pragas", correct: false }
+        ]
+      },
+      {
+        question: "(44) Qual o nome do sacerdote que comeu os pães da proposição por necessidade (citado por Jesus)?",
+        answers: [
+          { text: "Abiá", correct: true },
+          { text: "Aimeleque", correct: false },
+          { text: "Zadoque", correct: false },
+          { text: "Eli", correct: false }
+        ]
+      },
+      {
+        question: "(45) Quem foi a única mulher na Bíblia a ser chamada de 'juíza'?",
+        answers: [
+          { text: "Ana", correct: false },
+          { text: "Ester", correct: false },
+          { text: "Débora", correct: true },
+          { text: "Miriã", correct: false }
+        ]
+      },
+      {
+        question: "(46) Quantos cavaleiros são mencionados no exército de Gideão que derrotou os midianitas?",
+        answers: [
+          { text: "300 homens (sem cavalos)", correct: true },
+          { text: "Nenhum cavaleiro", correct: false },
+          { text: "500 cavaleiros", correct: false },
+          { text: "1000 cavaleiros", correct: false }
+        ]
+      },
+      {
+        question: "(47) Qual o nome do jardim onde Jesus foi traído por Judas Iscariotes?",
+        answers: [
+          { text: "Jardim de José de Arimateia", correct: false },
+          { text: "Jardim das Oliveiras", correct: false },
+          { text: "Jardim do Getsêmani", correct: true },
+          { text: "Jardim do Éden", correct: false }
+        ]
+      },
+      {
+        question: "(48) Quem foi o sucessor de Moisés como líder de Israel?",
+        answers: [
+          { text: "Josué", correct: true },
+          { text: "Calebe", correct: false },
+          { text: "Arão", correct: false },
+          { text: "Eleazar", correct: false }
+        ]
+      },
+      {
+        question: "(49) Em qual capítulo de Gênesis Deus faz a promessa a Abraão de que ele seria o pai de uma grande nação?",
+        answers: [
+          { text: "Gênesis 22", correct: false },
+          { text: "Gênesis 15", correct: false },
+          { text: "Gênesis 12", correct: true },
+          { text: "Gênesis 17", correct: false }
+        ]
+      },
+      {
+        question: "(50) Quantos livros tem a Bíblia Protestante (incluindo Novo e Antigo Testamento)?",
+        answers: [
+          { text: "70 livros", correct: false },
+          { text: "68 livros", correct: false },
+          { text: "66 livros", correct: true },
+          { text: "73 livros", correct: false }
+        ]
+      },
+      {
+        question: "(51) Qual o nome do rei que colocou Daniel na cova dos leões?",
+        answers: [
+          { text: "Ciro", correct: false },
+          { text: "Dario", correct: true },
+          { text: "Belsazar", correct: false },
+          { text: "Nabucodonosor", correct: false }
+        ]
+      },
+      {
+        question: "(52) Quantos versículos tem o Salmo 119 (o mais longo da Bíblia)?",
+        answers: [
+          { text: "150 versículos", correct: false },
+          { text: "176 versículos", correct: true },
+          { text: "100 versículos", correct: false },
+          { text: "200 versículos", correct: false }
+        ]
+      },
+      {
+        question: "(53) Qual era a profissão de Mateus antes de seguir Jesus?",
+        answers: [
+          { text: "Carpinteiro", correct: false },
+          { text: "Cobrador de impostos (publicano)", correct: true },
+          { text: "Médico", correct: false },
+          { text: "Pescador", correct: false }
+        ]
+      },
+      {
+        question: "(54) Quem foi o profeta que confrontou o rei Davi sobre seu pecado com Bate-Seba?",
+        answers: [
+          { text: "Gade", correct: false },
+          { text: "Natã", correct: true },
+          { text: "Samuel", correct: false },
+          { text: "Zadoque", correct: false }
+        ]
+      },
+      {
+        question: "(55) Quantas pessoas foram salvas na arca de Noé (citando o número exato mencionado na Bíblia)?",
+        answers: [
+          { text: "Oito almas", correct: true },
+          { text: "Dez pessoas", correct: false },
+          { text: "Sete pessoas", correct: false },
+          { text: "Nove pessoas", correct: false }
+        ]
+      },
+      {
+        question: "(56) Qual o nome do rei da Babilônia que viu a escrita na parede durante um banquete?",
+        answers: [
+          { text: "Nabucodonosor", correct: false },
+          { text: "Evil-Merodaque", correct: false },
+          { text: "Belsazar", correct: true },
+          { text: "Dario", correct: false }
+        ]
+      },
+      {
+        question: "(57) Qual discípulo cortou a orelha do servo do sumo sacerdote no jardim do Getsêmani?",
+        answers: [
+          { text: "Tiago", correct: false },
+          { text: "Judas", correct: false },
+          { text: "Pedro", correct: true },
+          { text: "João", correct: false }
+        ]
+      },
+      {
+        question: "(58) Quantos dias e noites choveu durante o dilúvio nos tempos de Noé?",
+        answers: [
+          { text: "50 dias e 50 noites", correct: false },
+          { text: "30 dias e 30 noites", correct: false },
+          { text: "40 dias e 40 noites", correct: true },
+          { text: "100 dias e 100 noites", correct: false }
+        ]
+      },
+      {
+        question: "(59) Qual o nome da esposa de Abraão que morreu primeiro?",
+        answers: [
+          { text: "Agar", correct: false },
+          { text: "Sara", correct: true },
+          { text: "Rebeca", correct: false },
+          { text: "Quetura", correct: false }
+        ]
+      },
+      {
+        question: "(60) Em qual cidade Jesus realizou o seu primeiro milagre (transformar água em vinho)?",
+        answers: [
+          { text: "Nazaré", correct: false },
+          { text: "Cafarnaum", correct: false },
+          { text: "Caná da Galileia", correct: true },
+          { text: "Jerusalém", correct: false }
+        ]
+      },
+
+      {
         question: "(1) Qual profeta foi morto por uma espada depois de ser enganado por uma mentirosa que disse que ele era outro profeta?",
         answers: [
           { text: "Urias", correct: false },
@@ -949,195 +1139,7 @@
           { text: "Habacuque", correct: true }
         ]
       },
-      {
-        question: "(40) Quantas pessoas entraram na arca de Noé (contando com Noé)?",
-        answers: [
-          { text: "Sete pessoas", correct: false },
-          { text: "Nove pessoas", correct: false },
-          { text: "Seis pessoas", correct: false },
-          { text: "Oito pessoas", correct: true }
-        ]
-      },
-      {
-        question: "(41) Qual o nome do escravo de Saulo (Paulo) que o ajudou a apedrejar Estevão?",
-        answers: [
-          { text: "João Marcos", correct: false },
-          { text: "Silas", correct: false },
-          { text: "Não é mencionado", correct: true },
-          { text: "Tiago", correct: false }
-        ]
-      },
-      {
-        question: "(42) Qual rei escreveu a frase 'Vaidade de vaidades, tudo é vaidade'?",
-        answers: [
-          { text: "Salomão", correct: true },
-          { text: "Ezequias", correct: false },
-          { text: "Davi", correct: false },
-          { text: "Josias", correct: false }
-        ]
-      },
-      {
-        question: "(43) Quantas pragas caíram sobre o Egito antes de Faraó deixar o povo de Israel sair?",
-        answers: [
-          { text: "Oito pragas", correct: false },
-          { text: "Dez pragas", correct: true },
-          { text: "Sete pragas", correct: false },
-          { text: "Doze pragas", correct: false }
-        ]
-      },
-      {
-        question: "(44) Qual o nome do sacerdote que comeu os pães da proposição por necessidade (citado por Jesus)?",
-        answers: [
-          { text: "Abiá", correct: true },
-          { text: "Aimeleque", correct: false },
-          { text: "Zadoque", correct: false },
-          { text: "Eli", correct: false }
-        ]
-      },
-      {
-        question: "(45) Quem foi a única mulher na Bíblia a ser chamada de 'juíza'?",
-        answers: [
-          { text: "Ana", correct: false },
-          { text: "Ester", correct: false },
-          { text: "Débora", correct: true },
-          { text: "Miriã", correct: false }
-        ]
-      },
-      {
-        question: "(46) Quantos cavaleiros são mencionados no exército de Gideão que derrotou os midianitas?",
-        answers: [
-          { text: "300 homens (sem cavalos)", correct: true },
-          { text: "Nenhum cavaleiro", correct: false },
-          { text: "500 cavaleiros", correct: false },
-          { text: "1000 cavaleiros", correct: false }
-        ]
-      },
-      {
-        question: "(47) Qual o nome do jardim onde Jesus foi traído por Judas Iscariotes?",
-        answers: [
-          { text: "Jardim de José de Arimateia", correct: false },
-          { text: "Jardim das Oliveiras", correct: false },
-          { text: "Jardim do Getsêmani", correct: true },
-          { text: "Jardim do Éden", correct: false }
-        ]
-      },
-      {
-        question: "(48) Quem foi o sucessor de Moisés como líder de Israel?",
-        answers: [
-          { text: "Josué", correct: true },
-          { text: "Calebe", correct: false },
-          { text: "Arão", correct: false },
-          { text: "Eleazar", correct: false }
-        ]
-      },
-      {
-        question: "(49) Em qual capítulo de Gênesis Deus faz a promessa a Abraão de que ele seria o pai de uma grande nação?",
-        answers: [
-          { text: "Gênesis 22", correct: false },
-          { text: "Gênesis 15", correct: false },
-          { text: "Gênesis 12", correct: true },
-          { text: "Gênesis 17", correct: false }
-        ]
-      },
-      {
-        question: "(50) Quantos livros tem a Bíblia Protestante (incluindo Novo e Antigo Testamento)?",
-        answers: [
-          { text: "70 livros", correct: false },
-          { text: "68 livros", correct: false },
-          { text: "66 livros", correct: true },
-          { text: "73 livros", correct: false }
-        ]
-      },
-      {
-        question: "(51) Qual o nome do rei que colocou Daniel na cova dos leões?",
-        answers: [
-          { text: "Ciro", correct: false },
-          { text: "Dario", correct: true },
-          { text: "Belsazar", correct: false },
-          { text: "Nabucodonosor", correct: false }
-        ]
-      },
-      {
-        question: "(52) Quantos versículos tem o Salmo 119 (o mais longo da Bíblia)?",
-        answers: [
-          { text: "150 versículos", correct: false },
-          { text: "176 versículos", correct: true },
-          { text: "100 versículos", correct: false },
-          { text: "200 versículos", correct: false }
-        ]
-      },
-      {
-        question: "(53) Qual era a profissão de Mateus antes de seguir Jesus?",
-        answers: [
-          { text: "Carpinteiro", correct: false },
-          { text: "Cobrador de impostos (publicano)", correct: true },
-          { text: "Médico", correct: false },
-          { text: "Pescador", correct: false }
-        ]
-      },
-      {
-        question: "(54) Quem foi o profeta que confrontou o rei Davi sobre seu pecado com Bate-Seba?",
-        answers: [
-          { text: "Gade", correct: false },
-          { text: "Natã", correct: true },
-          { text: "Samuel", correct: false },
-          { text: "Zadoque", correct: false }
-        ]
-      },
-      {
-        question: "(55) Quantas pessoas foram salvas na arca de Noé (citando o número exato mencionado na Bíblia)?",
-        answers: [
-          { text: "Oito almas", correct: true },
-          { text: "Dez pessoas", correct: false },
-          { text: "Sete pessoas", correct: false },
-          { text: "Nove pessoas", correct: false }
-        ]
-      },
-      {
-        question: "(56) Qual o nome do rei da Babilônia que viu a escrita na parede durante um banquete?",
-        answers: [
-          { text: "Nabucodonosor", correct: false },
-          { text: "Evil-Merodaque", correct: false },
-          { text: "Belsazar", correct: true },
-          { text: "Dario", correct: false }
-        ]
-      },
-      {
-        question: "(57) Qual discípulo cortou a orelha do servo do sumo sacerdote no jardim do Getsêmani?",
-        answers: [
-          { text: "Tiago", correct: false },
-          { text: "Judas", correct: false },
-          { text: "Pedro", correct: true },
-          { text: "João", correct: false }
-        ]
-      },
-      {
-        question: "(58) Quantos dias e noites choveu durante o dilúvio nos tempos de Noé?",
-        answers: [
-          { text: "50 dias e 50 noites", correct: false },
-          { text: "30 dias e 30 noites", correct: false },
-          { text: "40 dias e 40 noites", correct: true },
-          { text: "100 dias e 100 noites", correct: false }
-        ]
-      },
-      {
-        question: "(59) Qual o nome da esposa de Abraão que morreu primeiro?",
-        answers: [
-          { text: "Agar", correct: false },
-          { text: "Sara", correct: true },
-          { text: "Rebeca", correct: false },
-          { text: "Quetura", correct: false }
-        ]
-      },
-      {
-        question: "(60) Em qual cidade Jesus realizou o seu primeiro milagre (transformar água em vinho)?",
-        answers: [
-          { text: "Nazaré", correct: false },
-          { text: "Cafarnaum", correct: false },
-          { text: "Caná da Galileia", correct: true },
-          { text: "Jerusalém", correct: false }
-        ]
-      }
+      
     ];
 
     // ============================================
