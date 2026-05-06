@@ -1,13 +1,13 @@
-
 // ============================================
-// PREVENIR PULL-TO-REFRESH NO CELULAR + HEARTBEAT CORRIGIDO
+// PREVENIR PULL-TO-REFRESH NO CELULAR + HEARTBEAT CORRIGIDO + DETECÇÃO DE SAÍDA
 // ============================================
 (function () {
   let startY = 0;
   let currentY = 0;
   let intervaloPing = null;
   let heartbeatAtivo = false;
-  let horarioInicioGlobal = Date.now(); // ← DEFINIDA GLOBALMENTE
+  let horarioInicioGlobal = Date.now();
+  let saidaRegistrada = false; // ⭐ NOVO: Evita registrar saída múltiplas vezes
   
   // Função para obter o nome atualizado
   function getNomeAtual() {
@@ -54,7 +54,6 @@
     }).catch(e => console.log("Heartbeat error:", e));
   }
 
-  // ⭐ FUNÇÃO enviarStatus CRIADA ⭐
   function enviarStatus(motivo) {
     const nome = getNomeAtual();
     if (!nome) return;
@@ -75,39 +74,116 @@
     }).catch(e => console.log("Status error:", e));
   }
 
-  // Detecta saída/fechamento (CORRIGIDO)
-  window.addEventListener("beforeunload", () => {
-    const nome = getNomeAtual();
-    if (!nome) return;
+  // ⭐ NOVO: Função para registrar saída (mais robusta)
+  function registrarSaida(motivo) {
+    if (saidaRegistrada) {
+      console.log("⚠️ Saída já registrada anteriormente, ignorando");
+      return;
+    }
     
-    const blob = new Blob([JSON.stringify({
-      tipo: "SAIDA",
+    const nome = getNomeAtual();
+    if (!nome) {
+      console.log("⚠️ Sem nome do usuário, ignorando saída");
+      return;
+    }
+    
+    saidaRegistrada = true;
+    console.log(`🚪 REGISTRANDO SAÍDA: ${motivo} para ${nome}`);
+    
+    const dados = {
+      tipo: "SAIU_DO_JOGO",
       nome: nome,
-      motivo: "fechou_aba",
-      tempo_total: Math.floor((Date.now() - horarioInicioGlobal) / 1000),
+      motivo: motivo,
       fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 0,
       pontuacao_atual: typeof score !== 'undefined' ? score : 0,
+      tempo_total: Math.floor((Date.now() - horarioInicioGlobal) / 1000),
+      conjunto_ativo: typeof activeQuestionSet !== 'undefined' ? activeQuestionSet : "original",
       timestamp: Date.now()
-    })], {type: "application/json"});
+    };
     
-    navigator.sendBeacon("SEU_WEBHOOK_URL", blob);
-  });
+    // Usar sendBeacon para garantir envio mesmo fechando página
+    const blob = new Blob([JSON.stringify(dados)], {type: "application/json"});
+    const enviado = navigator.sendBeacon("SEU_WEBHOOK_URL", blob);
+    
+    if (!enviado) {
+      // Fallback para fetch
+      fetch("SEU_WEBHOOK_URL", {
+        method: "POST",
+        mode: "no-cors",
+        keepalive: true,
+        body: JSON.stringify(dados),
+      }).catch(e => console.log("Erro ao enviar saída:", e));
+    }
+    
+    // Parar heartbeat
+    if (intervaloPing) {
+      clearInterval(intervaloPing);
+      heartbeatAtivo = false;
+    }
+  }
 
-  // Detecta perda de foco (CORRIGIDO)
+  // ⭐ NOVO: Múltiplos métodos de detecção de saída
+  // 1. Fechamento normal da página
+  window.addEventListener("beforeunload", () => {
+    registrarSaida("fechou_aba");
+  });
+  
+  // 2. Recarregamento da página
+  window.addEventListener("pagehide", () => {
+    registrarSaida("recarregou_pagina");
+  });
+  
+  // 3. Perda de foco/aba minimizada (com delay)
   document.addEventListener("visibilitychange", () => {
     const nome = getNomeAtual();
     if (!nome) return;
     
     if (document.hidden) {
+      console.log("📱 Aba ficou oculta");
       enviarStatus("background");
+      
+      // Pausar heartbeat
       if (intervaloPing) {
         clearInterval(intervaloPing);
         heartbeatAtivo = false;
       }
+      
+      // Se ficar oculto por mais de 5 segundos, registrar como saída potencial
+      setTimeout(() => {
+        if (document.hidden && !saidaRegistrada) {
+          registrarSaida("aba_oculta_prolongada");
+        }
+      }, 5000);
+      
     } else {
       // Voltou - reiniciar heartbeat
+      console.log("🔄 Aba voltou a ficar visível");
+      saidaRegistrada = false; // Reset para nova sessão
       iniciarHeartbeat();
+      enviarStatus("retornou_aba");
     }
+  });
+  
+  // 4. App minimizado (mobile)
+  window.addEventListener("blur", () => {
+    console.log("📱 App perdeu foco");
+    setTimeout(() => {
+      if (document.hidden && !saidaRegistrada) {
+        registrarSaida("app_minimizado");
+      }
+    }, 1000);
+  });
+  
+  // 5. Para Android Chrome
+  if ('onpause' in window) {
+    window.addEventListener("pause", () => {
+      registrarSaida("app_pausado_android");
+    });
+  }
+  
+  // 6. Perda de conexão
+  window.addEventListener("offline", () => {
+    registrarSaida("perdeu_conexao");
   });
 
   // Prevenir pull-to-refresh
@@ -152,11 +228,13 @@
     atualizarNome: (nome) => {
       if (nome) {
         horarioInicioGlobal = Date.now();
+        saidaRegistrada = false; // Reset saída
         iniciarHeartbeat();
       }
     },
     resetarTempo: () => {
       horarioInicioGlobal = Date.now();
+      saidaRegistrada = false; // Reset saída
     }
   };
 })();
@@ -165,7 +243,7 @@
 // CONFIGURAÇÕES DO QUIZ
 // ============================================
 const PLANILHA_URL =
-  "https://script.google.com/macros/s/AKfycbyAj85f5v3dGcnbqq3nxWzGJO8NqQJXmW8JIOeSKfitt_89KIk2fYUNQw5wBXPc_iAp/exec";
+  "https://script.google.com/macros/s/AKfycbyyETp8zlBCS1mRePlIkvCW0SHXFahafNp29xnI8tcbroqEdq42iOeP6Z61cJLbPsHF/exec";
 const phaseLimits = [20, 40, 60];
 
 let currentPhase = 1;
@@ -177,12 +255,12 @@ let allQuestions = [];
 let jogadorAtivo = false;
 let nomeDoJogador = null;
 
-// ⭐ Adicionar a variável global horarioInicio que será usada ⭐
+// Variável global
 window.horarioInicio = Date.now();
 
 // ============================================
-// [AQUI VÃO TODAS AS SUAS PERGUNTAS - originalQuestions e newQuestions]
-// Mantenha exatamente como você já tem - é muito longo então não repeti
+// ⭐ AQUI VÃO TODAS AS SUAS PERGUNTAS (originalQuestions e newQuestions)
+// Mantenha exatamente como você já tem - não repeti para economizar espaço
 // ============================================
 
 const originalQuestions = [
@@ -1436,68 +1514,6 @@ async function registrarJogadorInicio(nome) {
 }
 
 // ============================================
-// DETECTAR SAÍDA DO JOGO (VERSÃO CORRIGIDA)
-// ============================================
-
-async function registrarSaidaJogador(motivo = "fechou_aba") {
-  console.log("🔍 registrarSaidaJogador - Motivo:", motivo);
-  console.log("🔍 jogadorAtivo =", jogadorAtivo);
-  console.log("🔍 nomeDoJogador =", nomeDoJogador);
-
-  if (!jogadorAtivo) {
-    console.log("🔍 jogadorAtivo é false, ignorando saída");
-    return;
-  }
-
-  jogadorAtivo = false;
-  const usuario = nomeDoJogador || localStorage.getItem("usuario");
-
-  if (!usuario || usuario === "Anônimo") {
-    console.log("🔍 usuario inválido, ignorando saída");
-    return;
-  }
-
-  const dados = {
-    nome: usuario,
-    tipo: "SAIU_DO_JOGO",
-    motivo: motivo,
-    fase_atual: currentPhase || 1,
-    pontuacao_atual: score || 0,
-    conjunto_ativo: activeQuestionSet,
-    timestamp: new Date().toISOString(),
-    mensagem: `Jogador saiu do quiz - Motivo: ${motivo}`,
-  };
-
-  console.log("🚪 Enviando saída:", dados);
-
-  try {
-    const blob = new Blob([JSON.stringify(dados)], { type: "application/json" });
-    const enviado = navigator.sendBeacon(PLANILHA_URL, blob);
-    
-    if (!enviado) {
-      await fetch(PLANILHA_URL, {
-        method: "POST",
-        mode: "no-cors",
-        keepalive: true,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dados),
-      });
-    }
-    console.log("✅ Saída registrada!");
-  } catch (erro) {
-    console.error("❌ Erro ao registrar saída:", erro);
-  }
-}
-
-// Eventos de saída (UNICADOS - sem duplicação)
-window.addEventListener("beforeunload", () => registrarSaidaJogador("fechou_aba"));
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) registrarSaidaJogador("mudou_aba");
-});
-window.addEventListener("pagehide", () => registrarSaidaJogador("recarregou"));
-window.addEventListener("offline", () => registrarSaidaJogador("perdeu_conexao"));
-
-// ============================================
 // FUNÇÕES DO QUIZ
 // ============================================
 function startPhase(phase) {
@@ -1630,7 +1646,7 @@ function showResult() {
 }
 
 // ============================================
-// EVENT LISTENERS (VERSÃO CORRIGIDA)
+// EVENT LISTENERS
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
   allQuestions = [...originalQuestions];
@@ -1649,7 +1665,6 @@ document.addEventListener("DOMContentLoaded", () => {
     btnNew.addEventListener("click", () => alternarConjuntoPerguntas("new"));
   }
 
-  // ⭐ BOTÃO START CORRIGIDO - SEM DUPLICAÇÃO ⭐
   if (startBtn) {
     startBtn.addEventListener("click", async () => {
       const nome = document.getElementById("usuario").value.trim();
@@ -1659,7 +1674,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       localStorage.setItem("usuario", nome);
-      window.horarioInicio = Date.now(); // ← RESETA O TEMPO
+      window.horarioInicio = Date.now();
       
       nomeDoJogador = nome;
       jogadorAtivo = true;
