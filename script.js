@@ -1,3 +1,4 @@
+/*
 // ============================================
 // PREVENIR PULL-TO-REFRESH NO CELULAR + HEARTBEAT CORRIGIDO + DETECÇÃO DE SAÍDA
 // ============================================
@@ -1737,7 +1738,7 @@ window.consultarProgresso = function () {
       progressoInfo.innerHTML = "⚠️ Nenhum progresso salvo";
     }
   }
-};
+};*/
 
 
 
