@@ -243,7 +243,7 @@
 // CONFIGURAÇÕES DO QUIZ
 // ============================================
 const PLANILHA_URL =
-  "https://script.google.com/macros/s/AKfycbyyETp8zlBCS1mRePlIkvCW0SHXFahafNp29xnI8tcbroqEdq42iOeP6Z61cJLbPsHF/exec";
+  "https://script.google.com/macros/s/AKfycbxRJeSIsAPnoXzuiDRAxfDz6IG6_0FJmj7TyC3qD3rwIeLyfuOfze4pPi3FCYSNPJjA/exec";
 const phaseLimits = [20, 40, 60];
 
 let currentPhase = 1;
