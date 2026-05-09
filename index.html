@@ -62,4 +62,214 @@
       });
     }
   </script>
+<script>
+  // ============================================
+// DETECTOR DE SAÍDA IMEDIATA DO QUIZ
+// ============================================
+
+(function() {
+    const WEBHOOK_URL = "https://script.google.com/macros/s/SEU_ID_AQUI/exec"; // ⚠️ COLOQUE SEU URL!
+    let saidaJaRegistrada = false;
+    let horarioInicio = Date.now();
+    
+    // Função principal para registrar saída
+    function registrarSaida(motivo) {
+        if (saidaJaRegistrada) return;
+        
+        const nome = localStorage.getItem("usuario") || sessionStorage.getItem("usuario") || "Anônimo";
+        
+        // Só registra se tiver nome (jogador começou o quiz)
+        if (nome === "Anônimo") {
+            console.log("⚠️ Visitante sem nome - não registrando saída");
+            return;
+        }
+        
+        saidaJaRegistrada = true;
+        
+        const dadosSaida = {
+            tipo: "SAIU_DO_JOGO",
+            nome: nome,
+            motivo: motivo,
+            fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 
+                       localStorage.getItem("fase_atual") || 1,
+            pontuacao_atual: typeof score !== 'undefined' ? score : 
+                            localStorage.getItem("pontuacao") || 0,
+            tempo_total: Math.floor((Date.now() - horarioInicio) / 1000),
+            conjunto_ativo: typeof activeQuestionSet !== 'undefined' ? activeQuestionSet : 
+                           localStorage.getItem("conjunto") || "original",
+            url: window.location.href,
+            navegador: navigator.userAgent,
+            timestamp: Date.now()
+        };
+        
+        console.log(`🚪 SAÍDA DETECTADA: ${nome} - Motivo: ${motivo}`);
+        
+        // MÉTODO 1: sendBeacon (mais confiável para fechamento)
+        if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(dadosSaida)], {type: "application/json"});
+            const enviado = navigator.sendBeacon(WEBHOOK_URL, blob);
+            console.log(`📡 sendBeacon: ${enviado ? "enviado" : "falhou"}`);
+        }
+        
+        // MÉTODO 2: fetch normal (fallback)
+        fetch(WEBHOOK_URL, {
+            method: "POST",
+            mode: "no-cors",
+            keepalive: true,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dadosSaida)
+        }).catch(erro => console.log("Erro no fetch:", erro));
+        
+        // Armazenar localmente (backup)
+        const saidasBackup = JSON.parse(localStorage.getItem("saidas_backup") || "[]");
+        saidasBackup.push(dadosSaida);
+        localStorage.setItem("saidas_backup", JSON.stringify(saidasBackup.slice(-50)));
+    }
+    
+    // ============================================
+    // EVENTOS QUE DETECTAM SAÍDA
+    // ============================================
+    
+    // 1. Fechar aba ou recarregar página (MAIS IMPORTANTE)
+    window.addEventListener("beforeunload", function() {
+        registrarSaida("fechou_aba_ou_recarregou");
+    });
+    
+    // 2. Página sendo descarregada
+    window.addEventListener("pagehide", function() {
+        registrarSaida("pagehide");
+    });
+    
+    // 3. Unload da página
+    window.addEventListener("unload", function() {
+        registrarSaida("unload");
+    });
+    
+    // 4. Aba ficou invisível (perdeu foco)
+    let timeoutOculto;
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden) {
+            console.log("👁️ Aba ficou oculta");
+            // Se ficar oculta por mais de 5 segundos, considerar como saída potencial
+            timeoutOculto = setTimeout(function() {
+                if (document.hidden && !saidaJaRegistrada) {
+                    registrarSaida("aba_oculta_prolongada");
+                }
+            }, 5000);
+        } else {
+            if (timeoutOculto) clearTimeout(timeoutOculto);
+            console.log("👁️ Aba visível novamente");
+            saidaJaRegistrada = false; // Reset se voltou
+        }
+    });
+    
+    // 5. App minimizado (mobile)
+    window.addEventListener("blur", function() {
+        console.log("📱 App perdeu foco");
+        setTimeout(function() {
+            if (document.hidden && !saidaJaRegistrada) {
+                registrarSaida("app_minimizado");
+            }
+        }, 3000);
+    });
+    
+    // 6. Para Android Chrome
+    if (window.onpause !== undefined) {
+        window.addEventListener("pause", function() {
+            registrarSaida("app_pausado_android");
+        });
+    }
+    
+    // 7. Perdeu conexão com internet
+    window.addEventListener("offline", function() {
+        registrarSaida("perdeu_conexao");
+    });
+    
+    // 8. Botão manual de saída (opcional)
+    window.criarBotaoSaidaManual = function() {
+        const botao = document.createElement("button");
+        botao.textContent = "🚪 Sair do Quiz";
+        botao.style.position = "fixed";
+        botao.style.bottom = "10px";
+        botao.style.right = "10px";
+        botao.style.backgroundColor = "#FF5722";
+        botao.style.color = "white";
+        botao.style.border = "none";
+        botao.style.padding = "10px 15px";
+        botao.style.borderRadius = "5px";
+        botao.style.cursor = "pointer";
+        botao.style.zIndex = "9999";
+        botao.style.fontSize = "14px";
+        
+        botao.onclick = function() {
+            registrarSaida("botao_sair_manual");
+            if (confirm("Tem certeza que deseja sair do quiz?")) {
+                window.close();
+                window.location.href = "about:blank";
+            }
+        };
+        
+        document.body.appendChild(botao);
+    };
+    
+    // Resetar ao iniciar o quiz
+    window.resetarDetectorSaida = function() {
+        saidaJaRegistrada = false;
+        horarioInicio = Date.now();
+        console.log("🔄 Detector de saída resetado");
+    };
+    
+    // Iniciar heartbeat (opcional - para saber que o jogador está ativo)
+    let intervaloHeartbeat;
+    function iniciarHeartbeat() {
+        if (intervaloHeartbeat) clearInterval(intervaloHeartbeat);
+        
+        intervaloHeartbeat = setInterval(function() {
+            const nome = localStorage.getItem("usuario");
+            if (nome && nome !== "Anônimo" && !saidaJaRegistrada) {
+                fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    keepalive: true,
+                    body: JSON.stringify({
+                        tipo: "HEARTBEAT",
+                        nome: nome,
+                        fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 1,
+                        pontuacao_atual: typeof score !== 'undefined' ? score : 0,
+                        timestamp: Date.now()
+                    })
+                }).catch(e => console.log("Heartbeat error:", e));
+            }
+        }, 30000); // A cada 30 segundos
+    }
+    
+    // Iniciar heartbeat automaticamente
+    iniciarHeartbeat();
+    
+    // Expor funções globalmente
+    window.detectorSaida = {
+        registrar: registrarSaida,
+        resetar: window.resetarDetectorSaida,
+        criarBotao: window.criarBotaoSaidaManual
+    };
+    
+    console.log("✅ Detector de saída imediata inicializado!");
+})();
+
+// Integrar com seu quiz existente
+// Chame esta função quando o jogador começar o quiz
+function iniciarMonitoramentoSaida(nomeJogador) {
+    if (nomeJogador) {
+        localStorage.setItem("usuario", nomeJogador);
+        if (window.detectorSaida && window.detectorSaida.resetar) {
+            window.detectorSaida.resetar();
+        }
+        console.log(`🎮 Monitoramento iniciado para: ${nomeJogador}`);
+    }
+}
+
+// Se quiser o botão de saída manual, descomente:
+// window.detectorSaida.criarBotao();
+</script>
+  
 </html>
