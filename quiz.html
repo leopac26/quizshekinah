@@ -63,19 +63,20 @@
       font-size: 1rem;
       border: none;
       border-radius: 10px;
-      background: #f0f0f0;
+      background: #0052cc;
+      color: white;
       cursor: pointer;
       transition: all 0.2s;
       text-align: left;
     }
 
     #answers button:hover {
-      background: #e0e0e0;
+      background: #0044aa;
       transform: scale(1.01);
     }
 
     button {
-      background: #2a5298;
+      background: #0052cc;
       color: white;
       border: none;
       padding: 12px 25px;
@@ -87,17 +88,17 @@
     }
 
     button:hover {
-      background: #1e3c72;
+      background: #003d99;
       transform: scale(1.02);
     }
 
     #next-btn, #next-phase-btn {
-      background: #4CAF50;
+      background: #0077ff;
       margin-top: 10px;
     }
 
     #next-btn:hover, #next-phase-btn:hover {
-      background: #45a049;
+      background: #0052cc;
     }
 
     #result {
@@ -120,12 +121,12 @@
     }
 
     .progresso button.action {
-      background: #ff9800;
+      background: #0066dd;
       margin: 5px;
     }
 
     .progresso button.action:hover {
-      background: #e68900;
+      background: #0052cc;
     }
 
     #progresso-info {
@@ -195,14 +196,202 @@
   </div>
   <div id="progresso-info" style="margin-top: 20px; font-size: 18px;"></div>
 
-  <script>
+ <script>
     // ============================================
-    // PREVENIR PULL-TO-REFRESH NO CELULAR
+    // PREVENIR PULL-TO-REFRESH NO CELULAR + HEARTBEAT + DETECÇÃO DE SAÍDA IMEDIATA
     // ============================================
     (function() {
         let startY = 0;
         let currentY = 0;
+        let intervaloPing = null;
+        let heartbeatAtivo = false;
+        let horarioInicioGlobal = Date.now();
+        let saidaRegistrada = false;
         
+        const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbxEbNhaNQStUDL-PiTSGUTzKclZQXpn6NpFqY6u4rL-JVrwuwEU8GsU8nw03KE5hC02/exec";
+        
+        function getNomeAtual() {
+            return localStorage.getItem("usuario") || null;
+        }
+        
+        function enviarPing() {
+            const nome = getNomeAtual();
+            if (!nome) return;
+            
+            fetch(PLANILHA_URL, {
+                method: "POST",
+                mode: "no-cors",
+                keepalive: true,
+                body: JSON.stringify({
+                    tipo: "HEARTBEAT",
+                    nome: nome,
+                    fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 0,
+                    pontuacao_atual: typeof score !== 'undefined' ? score : 0,
+                    timestamp: Date.now(),
+                }),
+            }).catch(e => console.log("Heartbeat error:", e));
+        }
+        
+        function iniciarHeartbeat() {
+            if (heartbeatAtivo) return;
+            
+            const nome = getNomeAtual();
+            if (!nome) {
+                console.log("⏳ Aguardando login para iniciar heartbeat...");
+                return;
+            }
+            
+            if (intervaloPing) clearInterval(intervaloPing);
+            
+            heartbeatAtivo = true;
+            console.log("💓 Iniciando heartbeat para:", nome);
+            
+            intervaloPing = setInterval(() => {
+                enviarPing();
+            }, 30000);
+        }
+        
+        function enviarStatus(motivo) {
+            const nome = getNomeAtual();
+            if (!nome) return;
+            
+            fetch(PLANILHA_URL, {
+                method: "POST",
+                mode: "no-cors",
+                keepalive: true,
+                body: JSON.stringify({
+                    tipo: "STATUS",
+                    nome: nome,
+                    motivo: motivo,
+                    fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 0,
+                    pontuacao_atual: typeof score !== 'undefined' ? score : 0,
+                    tempo_ativo: Math.floor((Date.now() - horarioInicioGlobal) / 1000),
+                    timestamp: Date.now()
+                }),
+            }).catch(e => console.log("Status error:", e));
+        }
+        
+        // ⭐ FUNÇÃO DE SAÍDA IMEDIATA ⭐
+        function registrarSaida(motivo) {
+            if (saidaRegistrada) return;
+            
+            const nome = getNomeAtual();
+            if (!nome) {
+                console.log("⚠️ Saída sem nome registrado");
+                return;
+            }
+            
+            saidaRegistrada = true;
+            console.log(`🚪 SAÍDA IMEDIATA: ${motivo} - ${nome}`);
+            
+            const dados = {
+                tipo: "SAIU_DO_JOGO",
+                nome: nome,
+                motivo: motivo,
+                fase_atual: typeof currentPhase !== 'undefined' ? currentPhase : 0,
+                pontuacao_atual: typeof score !== 'undefined' ? score : 0,
+                tempo_total: Math.floor((Date.now() - horarioInicioGlobal) / 1000),
+                conjunto_ativo: typeof activeQuestionSet !== 'undefined' ? activeQuestionSet : "original",
+                timestamp: Date.now()
+            };
+            
+            // Tenta enviar com sendBeacon (melhor para fechamento de página)
+            const blob = new Blob([JSON.stringify(dados)], {type: "application/json"});
+            let enviado = false;
+            
+            if (navigator.sendBeacon) {
+                enviado = navigator.sendBeacon(PLANILHA_URL, blob);
+                if (enviado) console.log("📡 Saída enviada via sendBeacon");
+            }
+            
+            // Se sendBeacon falhou, tenta fetch normal
+            if (!enviado) {
+                fetch(PLANILHA_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    keepalive: true,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados),
+                }).catch(e => console.log("Erro no fetch da saída:", e));
+            }
+            
+            // Parar heartbeat
+            if (intervaloPing) {
+                clearInterval(intervaloPing);
+                heartbeatAtivo = false;
+            }
+        }
+        
+        // ⭐ EVENTOS DE SAÍDA - MÚLTIPLOS MÉTODOS ⭐
+        
+        // 1. Fechamento normal da página
+        window.addEventListener("beforeunload", () => {
+            registrarSaida("fechou_aba");
+        });
+        
+        // 2. Recarregamento da página
+        window.addEventListener("pagehide", () => {
+            registrarSaida("recarregou_pagina");
+        });
+        
+        // 3. Unload (fallback)
+        window.addEventListener("unload", () => {
+            registrarSaida("unload_event");
+        });
+        
+        // 4. Perda de visibilidade da aba
+        let timeoutOculto;
+        document.addEventListener("visibilitychange", () => {
+            const nome = getNomeAtual();
+            if (!nome) return;
+            
+            if (document.hidden) {
+                console.log("📱 Aba ficou oculta");
+                enviarStatus("background");
+                
+                if (intervaloPing) {
+                    clearInterval(intervaloPing);
+                    heartbeatAtivo = false;
+                }
+                
+                timeoutOculto = setTimeout(() => {
+                    if (document.hidden && !saidaRegistrada) {
+                        registrarSaida("aba_oculta_prolongada");
+                    }
+                }, 10000);
+                
+            } else {
+                if (timeoutOculto) clearTimeout(timeoutOculto);
+                console.log("🔄 Aba voltou a ficar visível");
+                saidaRegistrada = false;
+                iniciarHeartbeat();
+                enviarStatus("retornou_aba");
+            }
+        });
+        
+        // 5. App minimizado (mobile)
+        window.addEventListener("blur", () => {
+            console.log("📱 App perdeu foco");
+            setTimeout(() => {
+                if (document.hidden && !saidaRegistrada) {
+                    registrarSaida("app_minimizado");
+                }
+            }, 2000);
+        });
+        
+        // 6. Para Android Chrome
+        if ('onpause' in window) {
+            window.addEventListener("pause", () => {
+                registrarSaida("app_pausado_android");
+            });
+        }
+        
+        // 7. Perda de conexão
+        window.addEventListener("offline", () => {
+            registrarSaida("perdeu_conexao");
+        });
+        
+        // Prevenir pull-to-refresh
         function preventPullToRefresh(e) {
             const scrollable = e.target.closest('#quiz-container, #answers, body') || document.body;
             const isScrollable = scrollable.scrollHeight > scrollable.clientHeight;
@@ -233,12 +422,32 @@
             currentY = e.touches[0].clientY;
             preventPullToRefresh(e);
         }, { passive: false });
+        
+        // API para controle externo
+        window.heartbeatAPI = {
+            iniciar: iniciarHeartbeat,
+            parar: () => {
+                if (intervaloPing) clearInterval(intervaloPing);
+                heartbeatAtivo = false;
+            },
+            atualizarNome: (nome) => {
+                if (nome) {
+                    horarioInicioGlobal = Date.now();
+                    saidaRegistrada = false;
+                    iniciarHeartbeat();
+                }
+            },
+            resetarTempo: () => {
+                horarioInicioGlobal = Date.now();
+                saidaRegistrada = false;
+            }
+        };
     })();
 
     // ============================================
     // CONFIGURAÇÕES DO QUIZ
     // ============================================
-    const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbxtebwhdPxpsEUulAUe4HeElXDFV73gUSgZudgCCvWCEMa6yfUf_7oPyXExrFSvgaH6/exec";
+    const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbxEbNhaNQStUDL-PiTSGUTzKclZQXpn6NpFqY6u4rL-JVrwuwEU8GsU8nw03KE5hC02/exec";
     const phaseLimits = [20, 40, 60];
 
     let currentPhase = 1;
@@ -251,7 +460,8 @@
     // ============================================
     // CONJUNTO 1: PERGUNTAS ORIGINAIS (SUAS 60)
     // ============================================
-    const originalQuestions = [
+      // Suas 60 perguntas originais aqui (mantenha como estão)
+      const originalQuestions = [
       {
         question: "(1) A quem Paulo chamou de 'meu companheiro de lutas' (Filemon 1:2)?",
         answers: [
@@ -791,6 +1001,7 @@
         ]
       }
     ];
+    
 
     // ============================================
     // CONJUNTO 2: NOVAS PERGUNTAS SUPERS DIFÍCEIS
@@ -1362,7 +1573,6 @@
         console.log("✅ Conjunto NOVO ativado");
       }
       
-      // Se o quiz já tiver começado, reinicia
       if (document.getElementById("quiz-container") && !document.getElementById("quiz-container").classList.contains("hidden")) {
         if (confirm("Você quer mudar o conjunto de perguntas? O quiz será reiniciado.")) {
           document.getElementById("start-screen").classList.remove("hidden");
@@ -1376,7 +1586,7 @@
         const usuario = localStorage.getItem("usuario") || "Anônimo";
         if (!dados.nome) dados.nome = usuario;
         
-        console.log("📤 Enviando para planilha:", dados);
+        console.log("📤 Enviando para planilha:", dados.tipo || "RESPOSTA");
         
         await fetch(PLANILHA_URL, {
           method: "POST",
@@ -1384,8 +1594,6 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(dados)
         });
-        
-        console.log("✅ Dados enviados para planilha!");
         
         const backupKey = `backup_${usuario}`;
         const backups = JSON.parse(localStorage.getItem(backupKey) || "[]");
@@ -1409,7 +1617,6 @@
           body: JSON.stringify({
             nome: nome,
             tipo: "REGISTRO_INICIAL",
-            acertou: false,
             timestamp: new Date().toISOString(),
             mensagem: "Jogador entrou no quiz",
             conjunto_ativo: activeQuestionSet
@@ -1417,6 +1624,12 @@
         });
         
         console.log("✅ Jogador registrado na planilha!");
+        
+        // Iniciar heartbeat após registrar jogador
+        if (window.heartbeatAPI) {
+          window.heartbeatAPI.resetarTempo();
+          window.heartbeatAPI.atualizarNome(nome);
+        }
         
       } catch (erro) {
         console.error("❌ Erro ao registrar jogador:", erro);
@@ -1489,6 +1702,7 @@
       }
 
       enviarParaPlanilha({
+        tipo: "RESPOSTA",
         nome: usuario,
         fase: currentPhase,
         pergunta: perguntaAtual,
@@ -1554,11 +1768,9 @@
     // EVENT LISTENERS
     // ============================================
     document.addEventListener("DOMContentLoaded", () => {
-      // Inicializa com o conjunto original
       allQuestions = [...originalQuestions];
       activeQuestionSet = "original";
       
-      // Botões de alternar conjunto
       const btnOriginal = document.getElementById("btn-original");
       const btnNew = document.getElementById("btn-new");
       const startBtn = document.getElementById("start-btn");
@@ -1609,7 +1821,6 @@
       }
     });
 
-    // Funções globais para os botões de progresso
     window.salvarProgresso = function() {
       const usuario = localStorage.getItem("usuario") || "Anônimo";
       alert(`Progresso salvo localmente para ${usuario}!`);
@@ -1619,18 +1830,20 @@
       const usuario = localStorage.getItem("usuario") || "desconhecido";
       const backupKey = `backup_${usuario}`;
       const backups = JSON.parse(localStorage.getItem(backupKey) || "[]");
+      const progressoInfo = document.getElementById("progresso-info");
       
-      if (backups.length > 0) {
-        const ultimo = backups[backups.length - 1];
-        document.getElementById("progresso-info").innerHTML = 
-          `👤 ${usuario} | 📊 ${backups.length} respostas salvas | 🕓 Última: ${new Date(ultimo.timestamp).toLocaleString()}`;
-      } else {
-        document.getElementById("progresso-info").innerHTML = "⚠️ Nenhum progresso salvo";
+      if (progressoInfo) {
+        if (backups.length > 0) {
+          const ultimo = backups[backups.length - 1];
+          progressoInfo.innerHTML = `👤 ${usuario} | 📊 ${backups.length} respostas salvas | 🕓 Última: ${new Date(ultimo.timestamp).toLocaleString()}`;
+        } else {
+          progressoInfo.innerHTML = "⚠️ Nenhum progresso salvo";
+        }
       }
     };
-  </script>
+</script>
 
-  <script>
+<script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
@@ -1642,7 +1855,30 @@
           });
       });
     }
-  </script>
+</script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
