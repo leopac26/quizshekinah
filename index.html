@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
   <title>Quiz Bíblico</title>
   </head>
-
 <body>
 
   <h1>📖 Quiz Bíblico</h1>
@@ -46,11 +45,12 @@
     <button class="action" onclick="consultarProgresso()">📊 Ver Progresso</button>
   </div>
   <div id="progresso-info" style="margin-top: 20px; font-size: 18px;"></div>
+  </body>
 
   <script src="script.js"></script>
 
   <script>
-    if ('serviceWorker' in navigator) {
+     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
           .then((registration) => {
@@ -62,6 +62,4 @@
       });
     }
   </script>
-
-  </body>
 </html>
